@@ -22,31 +22,35 @@ namespace EmuSteam
             InitializeComponent();
         }
 
+        private string RetroarchDir = Application.StartupPath + @"\retroarch";
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            string RetroarchDir = Application.StartupPath + @"\retroarch";
             string masterRomDir = Application.StartupPath + @"\roms";
             if (!Directory.Exists(RetroarchDir))
             {
                 Form2 form2 = new Form2();
                 form2.Show();
-                form2.TopMost = true;
             }
             if (!Directory.Exists(masterRomDir))
                 Directory.CreateDirectory(masterRomDir);
+            string retroarchDir = Application.StartupPath + @"\controllers";
+            if (!Directory.Exists(retroarchDir))
+                Directory.CreateDirectory(retroarchDir);
+
             backgroundWorkerSettings ("http://newagesoldier.com/myfiles/xml/emusteam/xml.php", "console", "fullname", "link", "", "" );
         }
 
         private void backgroundWorkerSettings(string url, string parentNode, string nodeName, string nodeURL, string parentListView, string childListView)
         {
             string[] argArray = { url, parentNode, nodeName, nodeURL, parentListView, childListView };
+            this.UseWaitCursor = true;
             if (!backgroundWorker1.IsBusy)
                 backgroundWorker1.RunWorkerAsync(argArray);
         }
 
         public void getRetroArch()
         {
-            string RetroarchDir = Application.StartupPath + @"\retroarch";
             if (!Directory.Exists(RetroarchDir))
                 Directory.CreateDirectory(RetroarchDir);
 
@@ -61,6 +65,20 @@ namespace EmuSteam
                 builder.Append('.');
             }
             return builder.ToString();
+        }
+
+        private void Item_Click(object sender, EventArgs e)
+        {
+            string ParentMenuText = ((ToolStripMenuItem)sender).OwnerItem.Text;
+            ToolStripMenuItem clickedItem = (ToolStripMenuItem)sender;
+
+            string joystickFile = Application.StartupPath + @"\controllers\" + ParentMenuText + " " + clickedItem.Text + ".cfg";
+            if (!File.Exists(joystickFile))
+                File.Create(joystickFile).Close();
+
+            string strCmdText = Application.StartupPath + @"\retroarch\retroarch-joyconfig.exe";
+            string arguments = @"-o " + '"' + joystickFile + '"';
+            Process.Start(strCmdText, arguments);
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -81,8 +99,23 @@ namespace EmuSteam
                         string realURLC = HttpUtility.HtmlDecode(args[5]);
                         mainNode.Text = userNode.SelectSingleNode(args[2]).InnerXml;
                         mainNode.Name = userNode.SelectSingleNode(args[3]).InnerXml;
-                        if (string.IsNullOrEmpty(args[4]) && string.IsNullOrEmpty(args[5])) //first time loading console list
+                        if (string.IsNullOrEmpty(args[4]) && string.IsNullOrEmpty(args[5]))
+                        { //first time loading console list
                             treeView1.Nodes.Add(mainNode);
+
+                            //add joystick menus
+                            ToolStripMenuItem item = new ToolStripMenuItem("CMainMenu");
+                            item.Text = mainNode.Text;
+                            configureJoysticksToolStripMenuItem.DropDown.Items.Add(item);
+                            ToolStripMenuItem Pitem1 = new ToolStripMenuItem("CMenu1");
+                            Pitem1.Text = "Controller 1";
+                            Pitem1.Click += new EventHandler(Item_Click);
+                            item.DropDown.Items.Add(Pitem1);
+                            ToolStripMenuItem Pitem2 = new ToolStripMenuItem("CMenu2");
+                            Pitem2.Text = "Controller 2";
+                            Pitem2.Click += new EventHandler(Item_Click);
+                            item.DropDown.Items.Add(Pitem2);
+                        }
                         else if (!string.IsNullOrEmpty(args[4]) && string.IsNullOrEmpty(args[5])) //we selected a console
                         {
                             treeView1.Nodes[Convert.ToInt32(realURLP)].Nodes.Add(mainNode);
@@ -111,8 +144,7 @@ namespace EmuSteam
                     int index = gameName.IndexOf(" ("); //remove languages in brackets
                     if (index > 0)
                         gameName = gameName.Substring(0, index);
-
-                    Cursor.Current = Cursors.WaitCursor;
+                    this.UseWaitCursor = true;
                     string navURL = "http://newagesoldier.com/myfiles/xml/thegamesdb/xml.php?n=" + gameName + "&p=" + platName;
                     webBrowser1.Navigate(new Uri(navURL));
                     //MessageBox.Show(navURL); //DEBUG
@@ -130,7 +162,7 @@ namespace EmuSteam
             }
         }
 
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar1.Value = e.ProgressPercentage;
             progressBar1.Text = e.ProgressPercentage.ToString() + "%";
@@ -202,13 +234,21 @@ namespace EmuSteam
             else
             {
                 //MessageBox.Show(dirs[0]);
-                button1.Text = "Play Game";
+                button1.Text = "PLAY GAME!";
 
                 string strCmdText = Application.StartupPath + @"\retroarch\retroarch.exe";
                 string fs = "";
                 if (Properties.Settings.Default.fullscreen == true)
                     fs = " -f ";
-                string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(treeView1.SelectedNode.Parent.Parent.Text) + ".dll " + fs + '"' + dirs[0] + '"';
+                string ctrlPathAndFile = Application.StartupPath + @"\controllers\" + treeView1.SelectedNode.Parent.Parent.Text;
+                string c1 = ""; //controller1
+                string c2 = ""; //controller2
+                if (File.Exists(ctrlPathAndFile + " Controller 1.cfg"))
+                    c1 = "--appendconfig " + '"' + ctrlPathAndFile + " Controller 1.cfg" + '"' + " ";
+                if (File.Exists(ctrlPathAndFile + " Controller 2.cfg"))
+                    c2 = "--appendconfig " + '"' + ctrlPathAndFile + " Controller 2.cfg" + '"' + " ";
+
+                string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(treeView1.SelectedNode.Parent.Parent.Text) + ".dll " + fs + c1 + c2 + "--appendconfig " + '"' + Application.StartupPath + @"\retroarch_defaults.cfg" + '"' + " " + '"' + dirs[0] + '"';
                 Process.Start(strCmdText, arguments);
             }
         }
@@ -262,14 +302,23 @@ namespace EmuSteam
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             button1.Enabled = true;
-            button1.Text = "Download && Play";
-            Cursor.Current = Cursors.Arrow;
+            string romDir = Application.StartupPath + @"\roms\" + treeView1.SelectedNode.Parent.Parent.Text;
+            if (!Directory.Exists(romDir))
+                Directory.CreateDirectory(romDir);
+
+            string[] dirs = Directory.GetFiles(romDir, treeView1.SelectedNode.Text + @".*");
+
+            if (dirs == null || dirs.Length == 0) //begin the download
+                button1.Text = "DOWNLOAD && PLAY";
+            else
+                button1.Text = "PLAY GAME!";
+            this.UseWaitCursor = false;
         }
 
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void backgroundWorker2_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             button1.Enabled = true;
-            button1.PerformClick(); //ready to play
+            button1.PerformClick(); //play
         }
 
         private void retroArchSettingsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -286,9 +335,36 @@ namespace EmuSteam
             about.TopMost = true;
         }
 
-        private void donateToolStripMenuItem_Click(object sender, EventArgs e)
+        private void manageRetroArchFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("http://newagesoldier.com/about/");
+            Form2 form2 = new Form2();
+            form2.Show();
+        }
+
+        private void donateToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            Process.Start("http://newagesoldier.com/about/");
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void openRetroArchFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(RetroarchDir);
+        }
+
+        private void browseEmuSteamFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(Application.StartupPath);
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Cursor.Current = Cursors.Default;
+            this.UseWaitCursor = false;
         }
     }
 }

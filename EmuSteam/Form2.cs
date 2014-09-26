@@ -20,22 +20,25 @@ namespace EmuSteam
             InitializeComponent();
         }
 
+        private string retroarchDir = Application.StartupPath + @"\retroarch\";
+
         private void getRA(string architecture)
         {
+            progressBar1.Value = 0;
             if (!backgroundWorker1.IsBusy)
                 backgroundWorker1.RunWorkerAsync(architecture);
+            statusLabel.Text = "STATUS: Download files...";
             button3.Enabled = false;
-            button2.Text = "Close";
             statusLabel.Visible = true;
             progressBar1.Visible = true;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        /*private void button1_Click(object sender, EventArgs e) //get 32 bit 
         {
-            /*((Form1)Owner).getRetroArch();
-            this.Close();*/
+            //((Form1)Owner).getRetroArch();
+            //this.Close();
             getRA("32");
-        }
+        }*/
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -44,6 +47,11 @@ namespace EmuSteam
 
         public void ExtractFileToDirectory(string zipFileName, string outputDirectory)
         {
+            if (statusLabel.InvokeRequired)
+                statusLabel.Invoke(new MethodInvoker(delegate
+                {
+                    statusLabel.Text = "STATUS: Unzipping files. Please wait...";
+                }));
             FileStream fs = File.OpenRead(zipFileName);
             ZipFile zip = ZipFile.Read(fs);
             Directory.CreateDirectory(outputDirectory);
@@ -110,19 +118,42 @@ namespace EmuSteam
             progressBar1.Text = e.ProgressPercentage.ToString() + "%";
         }
 
+        private void retroArchFolderCheck()
+        {
+            if (Directory.Exists(retroarchDir))
+            {
+                button3.Enabled = false; //get btn
+                button1.Enabled = true; //delete btn
+            }
+            else
+            {
+                button3.Enabled = true; //get btn
+                button1.Enabled = false; //delete btn
+                progressBar1.Visible = false;
+                statusLabel.Visible = false;
+            }
+        }
+
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             statusLabel.Text = "STATUS: COMPLETE!";
+            retroArchFolderCheck();
         }
 
         private void Form2_Load(object sender, EventArgs e)
         {
-
+            retroArchFolderCheck();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             getRA("64");
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            Directory.Delete(retroarchDir, true);
+            retroArchFolderCheck();
         }
     }
 }
