@@ -21,6 +21,7 @@ namespace EmuSteam
         }
 
         private string retroarchDir = Application.StartupPath + @"\retroarch\";
+        private string retroCores = Application.StartupPath + @"\retroarch\cores";
 
         private void getRA(string architecture)
         {
@@ -28,9 +29,12 @@ namespace EmuSteam
             if (!backgroundWorker1.IsBusy)
                 backgroundWorker1.RunWorkerAsync(architecture);
             statusLabel.Text = "STATUS: Download files...";
-            button3.Enabled = false;
             statusLabel.Visible = true;
             progressBar1.Visible = true;
+            if (architecture.Contains("core") == true)
+                button4.Enabled = false;
+            else
+                button3.Enabled = false;
         }
 
         /*private void button1_Click(object sender, EventArgs e) //get 32 bit 
@@ -70,7 +74,12 @@ namespace EmuSteam
             string retroarchDir = Application.StartupPath + @"\retroarch";
             if (!Directory.Exists(retroarchDir))
                 Directory.CreateDirectory(retroarchDir);
+            string dynamicURL = e.Argument as string;
             string realURL = HttpUtility.HtmlDecode("http://newagesoldier.com/myfiles/xml/emusteam/getra.php?v=" + e.Argument);
+
+            string coreDir = Application.StartupPath + @"\retroarch\cores";
+            if (!Directory.Exists(coreDir))
+                Directory.CreateDirectory(coreDir);
 
             string sUrlToReadFileFrom = realURL;
             string sFilePathToWriteFileTo = retroarchDir + @"\tmp.zip";
@@ -109,7 +118,10 @@ namespace EmuSteam
             }
 
             string zipToUnpack = retroarchDir + @"\tmp.zip";
-            ExtractFileToDirectory(zipToUnpack, retroarchDir);
+            if (dynamicURL.Contains("core") == true)
+                ExtractFileToDirectory(zipToUnpack, coreDir);
+            else
+                ExtractFileToDirectory(zipToUnpack, retroarchDir);
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -129,6 +141,19 @@ namespace EmuSteam
             {
                 button3.Enabled = true; //get btn
                 button1.Enabled = false; //delete btn
+                progressBar1.Visible = false;
+                statusLabel.Visible = false;
+            }
+
+            if (Directory.Exists(retroCores))
+            {
+                button4.Enabled = false; //get btn
+                button5.Enabled = true; //delete btn
+            }
+            else
+            {
+                button4.Enabled = true; //get btn
+                button5.Enabled = false; //delete btn
                 progressBar1.Visible = false;
                 statusLabel.Visible = false;
             }
@@ -153,6 +178,17 @@ namespace EmuSteam
         private void button1_Click_1(object sender, EventArgs e)
         {
             Directory.Delete(retroarchDir, true);
+            retroArchFolderCheck();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            getRA("cores64");
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Directory.Delete(retroCores, true);
             retroArchFolderCheck();
         }
     }

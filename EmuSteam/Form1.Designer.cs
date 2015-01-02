@@ -54,7 +54,7 @@
             this.webBrowser1.Location = new System.Drawing.Point(414, 27);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(653, 814);
+            this.webBrowser1.Size = new System.Drawing.Size(653, 643);
             this.webBrowser1.TabIndex = 1;
             this.webBrowser1.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowser1_DocumentCompleted);
             // 
@@ -68,7 +68,7 @@
             // 
             this.treeView1.Location = new System.Drawing.Point(1, 26);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(410, 785);
+            this.treeView1.Size = new System.Drawing.Size(410, 615);
             this.treeView1.TabIndex = 2;
             this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
@@ -77,7 +77,7 @@
             this.button1.Enabled = false;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.DarkGreen;
-            this.button1.Location = new System.Drawing.Point(3, 817);
+            this.button1.Location = new System.Drawing.Point(3, 646);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(143, 24);
             this.button1.TabIndex = 3;
@@ -87,7 +87,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(152, 817);
+            this.progressBar1.Location = new System.Drawing.Point(152, 647);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(259, 23);
             this.progressBar1.TabIndex = 4;
@@ -191,7 +191,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1069, 846);
+            this.ClientSize = new System.Drawing.Size(1069, 672);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.treeView1);

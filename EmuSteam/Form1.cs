@@ -24,6 +24,7 @@ namespace EmuSteam
         }
 
         private string RetroarchDir = Application.StartupPath + @"\retroarch";
+        private string RetroCores = Application.StartupPath + @"\retroarch\cores";
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -370,6 +371,8 @@ namespace EmuSteam
         private void backgroundWorker2_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             button1.Enabled = true;
+            progressBar1.Value = 0;
+            button1.Text = "PLAY GAME!";
             button1.PerformClick(); //play
         }
 
