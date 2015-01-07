@@ -25,6 +25,7 @@ namespace EmuSteam
 
         private void getRA(string architecture)
         {
+            progressbarText.Visible = true;
             progressBar1.Value = 0;
             if (!backgroundWorker1.IsBusy)
                 backgroundWorker1.RunWorkerAsync(architecture);
@@ -43,6 +44,22 @@ namespace EmuSteam
             //this.Close();
             getRA("32");
         }*/
+
+        static String BytesToString(double byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs((long)byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
+        }
+
+        static string DisplayPercentage(double ratio)
+        {
+            return string.Format("{0.0%}", ratio);
+        }
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -78,8 +95,6 @@ namespace EmuSteam
             string realURL = HttpUtility.HtmlDecode("http://newagesoldier.com/myfiles/xml/emusteam/getra.php?v=" + e.Argument);
 
             string coreDir = Application.StartupPath + @"\retroarch\cores";
-            if (!Directory.Exists(coreDir))
-                Directory.CreateDirectory(coreDir);
 
             string sUrlToReadFileFrom = realURL;
             string sFilePathToWriteFileTo = retroarchDir + @"\tmp.zip";
@@ -109,7 +124,10 @@ namespace EmuSteam
                             double dProgressPercentage = (dIndex / dTotal);
                             int iProgressPercentage = (int)(dProgressPercentage * 100);
                             if (dIndex > 0 && dTotal > 0)
+                            {
+                                progressbarText.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
                                 backgroundWorker1.ReportProgress(iProgressPercentage);
+                            }
                         }
                         streamLocal.Close();
                     }
@@ -127,7 +145,6 @@ namespace EmuSteam
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar1.Value = e.ProgressPercentage;
-            progressBar1.Text = e.ProgressPercentage.ToString() + "%";
         }
 
         private void retroArchFolderCheck()
@@ -135,27 +152,32 @@ namespace EmuSteam
             if (Directory.Exists(retroarchDir))
             {
                 button3.Enabled = false; //get btn
+                button4.Enabled = true; //you can now get retroarch cores
                 button1.Enabled = true; //delete btn
             }
             else
             {
                 button3.Enabled = true; //get btn
+                button4.Enabled = false; //cant get cores without retroarch dir
                 button1.Enabled = false; //delete btn
                 progressBar1.Visible = false;
                 statusLabel.Visible = false;
+                textBox1.Text = "You do not have Retroarch in the proper folder. Would you like this program to get the proper files?";
             }
 
             if (Directory.Exists(retroCores))
             {
                 button4.Enabled = false; //get btn
                 button5.Enabled = true; //delete btn
+                textBox1.Text = "You appear to have Retroarch and game cores. You are ready to play. Enjoy!";
             }
             else
             {
-                button4.Enabled = true; //get btn
                 button5.Enabled = false; //delete btn
                 progressBar1.Visible = false;
                 statusLabel.Visible = false;
+                if (Directory.Exists(retroarchDir))
+                    textBox1.Text = "You appear to have retroarch but not game cores. You need the game cores to play the games!";
             }
         }
 
@@ -163,6 +185,8 @@ namespace EmuSteam
         {
             statusLabel.Text = "STATUS: COMPLETE!";
             retroArchFolderCheck();
+            progressbarText.Visible = false;
+            retroArchFolderCheck(); //check again
         }
 
         private void Form2_Load(object sender, EventArgs e)
@@ -183,6 +207,10 @@ namespace EmuSteam
 
         private void button4_Click(object sender, EventArgs e)
         {
+            button1.Enabled = false; //don't delete retroarch while we are downloading!
+            string coreDir = Application.StartupPath + @"\retroarch\cores";
+            if (!Directory.Exists(coreDir))
+                Directory.CreateDirectory(coreDir);
             getRA("cores64");
         }
 

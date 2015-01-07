@@ -196,11 +196,12 @@ namespace EmuSteam
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar1.Value = e.ProgressPercentage;
-            progressBar1.Text = e.ProgressPercentage.ToString() + "%";
+            //dlprogressLabel.Text = e.ProgressPercentage.ToString() + "%";
         }
 
         public void ExtractFileToDirectory(string zipFileName, string outputDirectory)
         {
+            dlprogressLabel.Text = "Unzipping files. Please wait...";
             FileStream fs = File.OpenRead(zipFileName);
             ZipFile zip = ZipFile.Read(fs);
             Directory.CreateDirectory(outputDirectory);
@@ -258,6 +259,7 @@ namespace EmuSteam
 
             if (dirs == null || dirs.Length == 0) //begin the download
             {
+                dlprogressLabel.Visible = true;
                 button1.Enabled = false;
                 if (!backgroundWorker2.IsBusy)
                     backgroundWorker2.RunWorkerAsync(argArray);
@@ -277,6 +279,17 @@ namespace EmuSteam
                 string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(treeView1.SelectedNode.Parent.Parent.Text) + ".dll " + fs + confFile + " " + '"' + dirs[0] + '"';
                 Process.Start(strCmdText, arguments);
             }
+        }
+
+        static String BytesToString(double byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs((long)byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
 
         private void mergeFiles(string consoleName)
@@ -340,6 +353,7 @@ namespace EmuSteam
                             double dProgressPercentage = (dIndex / dTotal);
                             int iProgressPercentage = (int)(dProgressPercentage * 100);
                             if (dIndex > 0 && dTotal > 0)
+                                dlprogressLabel.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
                                 backgroundWorker2.ReportProgress(iProgressPercentage);
                         }
                         streamLocal.Close();
@@ -372,6 +386,7 @@ namespace EmuSteam
         {
             button1.Enabled = true;
             progressBar1.Value = 0;
+            dlprogressLabel.Visible = false;
             button1.Text = "PLAY GAME!";
             button1.PerformClick(); //play
         }
@@ -420,6 +435,8 @@ namespace EmuSteam
         {
             Cursor.Current = Cursors.Default;
             this.UseWaitCursor = false;
+            if (!File.Exists("configs/defaults.cfg"))
+                using (File.Create("configs/defaults.cfg")) ;
         }
     }
 }

@@ -46,6 +46,7 @@
             this.retroArchSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.manageRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dlprogressLabel = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -187,11 +188,23 @@
             this.openRetroArchFolderToolStripMenuItem.Text = "Browse RetroArch Folder";
             this.openRetroArchFolderToolStripMenuItem.Click += new System.EventHandler(this.openRetroArchFolderToolStripMenuItem_Click);
             // 
+            // dlprogressLabel
+            // 
+            this.dlprogressLabel.AutoSize = true;
+            this.dlprogressLabel.BackColor = System.Drawing.Color.Transparent;
+            this.dlprogressLabel.Location = new System.Drawing.Point(225, 652);
+            this.dlprogressLabel.Name = "dlprogressLabel";
+            this.dlprogressLabel.Size = new System.Drawing.Size(111, 13);
+            this.dlprogressLabel.TabIndex = 6;
+            this.dlprogressLabel.Text = "Download is starting...";
+            this.dlprogressLabel.Visible = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1069, 672);
+            this.Controls.Add(this.dlprogressLabel);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.treeView1);
@@ -230,6 +243,7 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openRetroArchFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem browseEmuSteamFolderToolStripMenuItem;
+        private System.Windows.Forms.Label dlprogressLabel;
     }
 }
 
