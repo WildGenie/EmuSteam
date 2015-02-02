@@ -40,7 +40,9 @@ namespace EmuSteam
             if (!Directory.Exists(retroarchDir))
                 Directory.CreateDirectory(retroarchDir);
 
-            backgroundWorkerSettings ("http://newagesoldier.com/myfiles/xml/emusteam/xml.php", "console", "fullname", "link", "", "" );
+            // This still works but Nintendo has shut down Coolroms Nintendo rom links. Need to change to doperoms or romulation.
+            // NEW DESIGN: Have a store browser, and a library similar to Steam with user registration/login to save data.
+            //backgroundWorkerSettings ("http://newagesoldier.com/myfiles/xml/emusteam/xml.php", "console", "fullname", "link", "", "" );
         }
 
         private void backgroundWorkerSettings(string url, string parentNode, string nodeName, string nodeURL, string parentListView, string childListView)
@@ -437,6 +439,20 @@ namespace EmuSteam
             this.UseWaitCursor = false;
             if (!File.Exists("configs/defaults.cfg"))
                 using (File.Create("configs/defaults.cfg")) ;
+        }
+
+        private void libraryLink_Click(object sender, EventArgs e)
+        {
+            treeView1.Visible = true;
+            webBrowser1.Visible = true;
+            webBrowser2.Visible = false;
+        }
+
+        private void storeLink_Click(object sender, EventArgs e)
+        {
+            treeView1.Visible = false;
+            webBrowser1.Visible = false;
+            webBrowser2.Visible = true;
         }
     }
 }

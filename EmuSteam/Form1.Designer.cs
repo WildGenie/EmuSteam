@@ -47,16 +47,20 @@
             this.manageRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dlprogressLabel = new System.Windows.Forms.Label();
+            this.storeLink = new System.Windows.Forms.Label();
+            this.libraryLink = new System.Windows.Forms.Label();
+            this.webBrowser2 = new System.Windows.Forms.WebBrowser();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // webBrowser1
             // 
-            this.webBrowser1.Location = new System.Drawing.Point(414, 27);
+            this.webBrowser1.Location = new System.Drawing.Point(414, 61);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(653, 643);
+            this.webBrowser1.Size = new System.Drawing.Size(653, 609);
             this.webBrowser1.TabIndex = 1;
+            this.webBrowser1.Visible = false;
             this.webBrowser1.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowser1_DocumentCompleted);
             // 
             // backgroundWorker1
@@ -67,10 +71,11 @@
             // 
             // treeView1
             // 
-            this.treeView1.Location = new System.Drawing.Point(1, 26);
+            this.treeView1.Location = new System.Drawing.Point(1, 61);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(410, 615);
+            this.treeView1.Size = new System.Drawing.Size(410, 580);
             this.treeView1.TabIndex = 2;
+            this.treeView1.Visible = false;
             this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
             // button1
@@ -199,11 +204,46 @@
             this.dlprogressLabel.Text = "Download is starting...";
             this.dlprogressLabel.Visible = false;
             // 
+            // storeLink
+            // 
+            this.storeLink.AutoSize = true;
+            this.storeLink.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.storeLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.storeLink.Location = new System.Drawing.Point(12, 29);
+            this.storeLink.Name = "storeLink";
+            this.storeLink.Size = new System.Drawing.Size(97, 29);
+            this.storeLink.TabIndex = 7;
+            this.storeLink.Text = "STORE";
+            this.storeLink.Click += new System.EventHandler(this.storeLink_Click);
+            // 
+            // libraryLink
+            // 
+            this.libraryLink.AutoSize = true;
+            this.libraryLink.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.libraryLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.libraryLink.Location = new System.Drawing.Point(115, 29);
+            this.libraryLink.Name = "libraryLink";
+            this.libraryLink.Size = new System.Drawing.Size(113, 29);
+            this.libraryLink.TabIndex = 8;
+            this.libraryLink.Text = "LIBRARY";
+            this.libraryLink.Click += new System.EventHandler(this.libraryLink_Click);
+            // 
+            // webBrowser2
+            // 
+            this.webBrowser2.Location = new System.Drawing.Point(3, 59);
+            this.webBrowser2.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser2.Name = "webBrowser2";
+            this.webBrowser2.Size = new System.Drawing.Size(1066, 611);
+            this.webBrowser2.TabIndex = 9;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1069, 672);
+            this.Controls.Add(this.webBrowser2);
+            this.Controls.Add(this.libraryLink);
+            this.Controls.Add(this.storeLink);
             this.Controls.Add(this.dlprogressLabel);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.button1);
@@ -244,6 +284,9 @@
         private System.Windows.Forms.ToolStripMenuItem openRetroArchFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem browseEmuSteamFolderToolStripMenuItem;
         private System.Windows.Forms.Label dlprogressLabel;
+        private System.Windows.Forms.Label storeLink;
+        private System.Windows.Forms.Label libraryLink;
+        private System.Windows.Forms.WebBrowser webBrowser2;
     }
 }
 
