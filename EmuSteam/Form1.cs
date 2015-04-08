@@ -13,6 +13,9 @@ using System.Net;
 using Ionic.Zip;
 using System.Diagnostics;
 using Microsoft.DirectX.DirectInput;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EmuSteam
 {
@@ -25,6 +28,9 @@ namespace EmuSteam
 
         private string RetroarchDir = Application.StartupPath + @"\retroarch";
         private string RetroCores = Application.StartupPath + @"\retroarch\cores";
+        public string currentRomName = "";
+        public string currentSystem = "";
+        public string currentRomLink = "";
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -32,7 +38,7 @@ namespace EmuSteam
             if (!Directory.Exists(RetroarchDir))
             {
                 Form2 form2 = new Form2();
-                form2.Show();
+                form2.Show(this);
             }
             if (!Directory.Exists(masterRomDir))
                 Directory.CreateDirectory(masterRomDir);
@@ -40,17 +46,55 @@ namespace EmuSteam
             if (!Directory.Exists(retroarchDir))
                 Directory.CreateDirectory(retroarchDir);
 
-            // This still works but Nintendo has shut down Coolroms Nintendo rom links. Need to change to doperoms or romulation.
-            // NEW DESIGN: Have a store browser, and a library similar to Steam with user registration/login to save data.
-            //backgroundWorkerSettings ("http://newagesoldier.com/myfiles/xml/emusteam/xml.php", "console", "fullname", "link", "", "" );
+            ListDirectory(treeView1, Application.StartupPath + @"\roms\");
+            treeView1.ExpandAll();
         }
 
-        private void backgroundWorkerSettings(string url, string parentNode, string nodeName, string nodeURL, string parentListView, string childListView)
+        private static string RemoveExt(string file)
         {
-            string[] argArray = { url, parentNode, nodeName, nodeURL, parentListView, childListView };
-            this.UseWaitCursor = true;
-            if (!backgroundWorker1.IsBusy)
-                backgroundWorker1.RunWorkerAsync(argArray);
+            int fileExtPos = file.LastIndexOf(".");
+            if (fileExtPos >= 0)
+                file = file.Substring(0, fileExtPos);
+            return file;
+        }
+
+        private static bool checkSaveFiles(string fileName)
+        {
+            if (fileName.Contains(".srm"))
+                return true;
+            else
+                return false;
+        }
+
+        private void ListDirectory(TreeView treeView, string path)
+        {
+            treeView.Nodes.Clear();
+
+            var stack = new Stack<TreeNode>();
+            var rootDirectory = new DirectoryInfo(path);
+            var node = new TreeNode(rootDirectory.Name) { Tag = rootDirectory };
+            stack.Push(node);
+
+            while (stack.Count > 0)
+            {
+                var currentNode = stack.Pop();
+                var directoryInfo = (DirectoryInfo)currentNode.Tag;
+                foreach (var directory in directoryInfo.GetDirectories())
+                {
+                    addControllers(directory.Name);
+                    var childDirectoryNode = new TreeNode(directory.Name) { Tag = directory };
+                    currentNode.Nodes.Add(childDirectoryNode);
+                    stack.Push(childDirectoryNode);
+                }
+                foreach (var file in directoryInfo.GetFiles()){
+                    string fileName = RemoveExt(file.Name);
+
+                    if (!checkSaveFiles(file.Name)) //skip save files
+                        currentNode.Nodes.Add(new TreeNode(fileName));
+                }
+            }
+
+            treeView.Nodes.Add(node);
         }
 
         public void getRetroArch()
@@ -93,157 +137,118 @@ namespace EmuSteam
             Process.Start(strCmdText, arguments);
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        private void addControllers(string console)
         {
-            string[] args = (string[])e.Argument;
+            ToolStripMenuItem item = new ToolStripMenuItem("CMainMenu");
+            item.Text = console;
+            configureJoysticksToolStripMenuItem.DropDown.Items.Add(item);
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(args[0]);
+            ToolStripMenuItem Pitem1 = new ToolStripMenuItem("CMenu1");
+            Pitem1.Text = "Controller 1";
+            item.DropDown.Items.Add(Pitem1);
 
-            if (treeView1.InvokeRequired)
-                treeView1.Invoke(new MethodInvoker(delegate
-                {
-                    XmlNodeList userNodes = xmlDoc.SelectNodes("//" + args[1]);
-                    foreach (XmlNode userNode in userNodes)
-                    {
-                        TreeNode mainNode = new TreeNode();
-                        string realURLP = HttpUtility.HtmlDecode(args[4]);
-                        string realURLC = HttpUtility.HtmlDecode(args[5]);
-                        mainNode.Text = userNode.SelectSingleNode(args[2]).InnerXml;
-                        mainNode.Name = userNode.SelectSingleNode(args[3]).InnerXml;
-                        if (string.IsNullOrEmpty(args[4]) && string.IsNullOrEmpty(args[5]))
-                        { //first time loading console list
-                            treeView1.Nodes.Add(mainNode);
+            DeviceList gameControllerList = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
+            int i = 0;
+            foreach (DeviceInstance di in gameControllerList)
+            {
+                ToolStripMenuItem USBitem = new ToolStripMenuItem("USBitem");
+                USBitem.Text = di.InstanceName;
+                USBitem.Name = i.ToString();
+                USBitem.Click += new EventHandler(Item_Click);
+                Pitem1.DropDown.Items.Add(USBitem);
+                i++;
+            }
 
-                            //add joystick menus
-                            ToolStripMenuItem item = new ToolStripMenuItem("CMainMenu");
-                            item.Text = mainNode.Text;
-                            configureJoysticksToolStripMenuItem.DropDown.Items.Add(item);
+            ToolStripMenuItem Pitem2 = new ToolStripMenuItem("CMenu2");
+            Pitem2.Text = "Controller 2";
+            item.DropDown.Items.Add(Pitem2);
 
-                            ToolStripMenuItem Pitem1 = new ToolStripMenuItem("CMenu1");
-                            Pitem1.Text = "Controller 1";
-                            item.DropDown.Items.Add(Pitem1);
-
-                            DeviceList gameControllerList = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
-                            int i = 0;
-                            foreach (DeviceInstance di in gameControllerList)
-                            {
-                                ToolStripMenuItem USBitem = new ToolStripMenuItem("USBitem");
-                                USBitem.Text = di.InstanceName;
-                                USBitem.Name = i.ToString();
-                                USBitem.Click += new EventHandler(Item_Click);
-                                Pitem1.DropDown.Items.Add(USBitem);
-                                i++;
-                            }
-
-                            ToolStripMenuItem Pitem2 = new ToolStripMenuItem("CMenu2");
-                            Pitem2.Text = "Controller 2";
-                            item.DropDown.Items.Add(Pitem2);
-
-                            DeviceList gameControllerList2 = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
-                            foreach (DeviceInstance di in gameControllerList2)
-                            {
-                                ToolStripMenuItem USBitem2 = new ToolStripMenuItem("USBitem2");
-                                USBitem2.Text = di.InstanceName;
-                                USBitem2.Click += new EventHandler(Item_Click);
-                                Pitem2.DropDown.Items.Add(USBitem2);
-                            }
-                        }
-                        else if (!string.IsNullOrEmpty(args[4]) && string.IsNullOrEmpty(args[5])) //we selected a console
-                        {
-                            treeView1.Nodes[Convert.ToInt32(realURLP)].Nodes.Add(mainNode);
-                            treeView1.Nodes[Convert.ToInt32(realURLP)].Expand();
-                        }
-                        else //we selected a letter
-                        {
-                            treeView1.Nodes[Convert.ToInt32(realURLP)].Nodes[Convert.ToInt32(realURLC)].Nodes.Add(mainNode);
-                            treeView1.Nodes[Convert.ToInt32(realURLP)].Nodes[Convert.ToInt32(realURLC)].Expand();
-                        }
-                    }
-               }));
+            DeviceList gameControllerList2 = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
+            foreach (DeviceInstance di in gameControllerList2)
+            {
+                ToolStripMenuItem USBitem2 = new ToolStripMenuItem("USBitem2");
+                USBitem2.Text = di.InstanceName;
+                USBitem2.Click += new EventHandler(Item_Click);
+                Pitem2.DropDown.Items.Add(USBitem2);
+            }
         }
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (treeView1.SelectedNode != null)
             {
-                string realURL = HttpUtility.HtmlDecode(e.Node.Name);
-                button1.Enabled = false;
-                button1.Text = "Loading...";
-                if (realURL.Contains("download.php")) //selected a rom
-                {
-                    string gameName = e.Node.Text.Replace(" ", "+");
-                    string platName = e.Node.Parent.Parent.Text.Replace(" ", "+");
-                    int index = gameName.IndexOf(" ("); //remove languages in brackets
-                    if (index > 0)
-                        gameName = gameName.Substring(0, index);
-                    this.UseWaitCursor = true;
-                    string navURL = "http://newagesoldier.com/myfiles/xml/thegamesdb/xml.php?n=" + gameName + "&p=" + platName;
-                    webBrowser1.Navigate(new Uri(navURL));
-                    //MessageBox.Show(navURL); //DEBUG
-                }
-                else if (!realURL.Contains("l=")) //selected console
-                {
-                    if (e.Node.Nodes.Count == 0)
-                        backgroundWorkerSettings(realURL, "alpha", "letter", "link", e.Node.Index.ToString(), "");
-                }
-                else if (realURL.Contains("l=")) //selected letter
-                {
-                    if (e.Node.Nodes.Count == 0)
-                        backgroundWorkerSettings(realURL, "rom", "title", "link", e.Node.Parent.Index.ToString(), e.Node.Index.ToString());
-                }
+                loadingLabel.Visible = true;
+                webBrowser1.Visible = false;
+                string gameName = e.Node.Text;
+                string platName = e.Node.Parent.Text;
+                string navURL = "http://newagesoldier.com/myfiles/emustream/rom/" + platName + "/" + gameName;
+                webBrowser1.Navigate(new Uri(navURL));
             }
         }
 
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar1.Value = e.ProgressPercentage;
-            //dlprogressLabel.Text = e.ProgressPercentage.ToString() + "%";
+            if (dlprogressLabel.InvokeRequired)
+                dlprogressLabel.Invoke(new MethodInvoker(delegate
+                {
+                    dlprogressLabel.Text = e.ProgressPercentage.ToString() + "%";
+                }));
         }
 
         public void ExtractFileToDirectory(string zipFileName, string outputDirectory)
         {
-            dlprogressLabel.Text = "Unzipping files. Please wait...";
+            if (dlprogressLabel.InvokeRequired)
+                dlprogressLabel.Invoke(new MethodInvoker(delegate
+                {
+                    dlprogressLabel.Text = "Unzipping files...";
+                }));
             FileStream fs = File.OpenRead(zipFileName);
-            ZipFile zip = ZipFile.Read(fs);
-            Directory.CreateDirectory(outputDirectory);
-            foreach (ZipEntry e in zip)
+            string tmpFile = "";
+            if (zipFileName.Contains(".zip") == true)
             {
-                if (!e.FileName.Contains(".txt") && !e.FileName.Contains(".htm"))
+                ZipFile zip = ZipFile.Read(fs);
+                foreach (ZipEntry e in zip)
+                {
                     e.Extract(outputDirectory, ExtractExistingFileAction.OverwriteSilently);
+                }
+                tmpFile = outputDirectory + @"\tmp.zip";
             }
+            Directory.CreateDirectory(outputDirectory);
+            
             fs.Close();
 
-            string tmpFile = outputDirectory + @"\tmp.zip";
             File.Delete(tmpFile);
+            backgroundWorker2.CancelAsync();
+            return;
         }
 
         private string coreDetect(string console)
         {
             //all work on libretro (http://www.libretro.com/index.php/ecosystem/)
-            if (console.Contains("Arcade"))
+            if (console.Contains("arcade"))
                 return "mame_libretro";
-            else if (console.Contains("Nintendo Entertainment System (NES)"))
-                return "nestopia_libretro";
-            else if (console.Contains("Nintendo Game Boy"))
+            else if (console.Contains("gameboy"))
                 return "gambatte_libretro";
-            else if (console.Contains("Nintendo Game Boy Advance"))
+            else if (console.Contains("gba"))
                 return "mednafen_gba_libretro";
-            else if (console.Contains("Nintendo 64"))
+            else if (console.Contains("n64"))
                 return "mupen64plus_libretro";
-            else if (console.Contains("Nintendo DS"))
+            else if (console.Contains("nds"))
                 return "desmume_libretro";
-            else if (console.Contains("NeoGeo Pocket"))
+            else if (console.Contains("neogeo"))
                 return "mednafen_ngp_libretro";
-            else if (console.Contains("Atari 2600"))
+            else if (console.Contains("atari"))
                 return "stella_libretro";
-            else if (console.Contains("Atari Lynx"))
+            else if (console.Contains("lynx"))
                 return "handy_libretro";
-            else if (console.Contains("Sony Playstation"))
+            else if (console.Contains("psx"))
                 return "mednafen_psx_libretro";
-            else if (console.Contains("Super Nintendo (SNES)"))
+            else if (console.Contains("snes"))
                 return "snes9x_libretro";
-            else if (console.Contains("Sega CD") || console.Contains("Sega Game Gear") || console.Contains("Sega Genesis") || console.Contains("Sega Master System"))
+            else if (console.Contains("nes"))
+                return "nestopia_libretro";
+            else if (console.Contains("sega"))
                 return "genesis_plus_gx_libretro";
             else
                 return "";
@@ -251,13 +256,13 @@ namespace EmuSteam
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string[] argArray = { treeView1.SelectedNode.Parent.Parent.Text, treeView1.SelectedNode.Name };
-            
-            string romDir = Application.StartupPath + @"\roms\" + treeView1.SelectedNode.Parent.Parent.Text;
+            string[] argArray = { currentSystem, currentRomLink }; //dir, URL
+
+            string romDir = Application.StartupPath + @"\roms\" + currentSystem;
             if (!Directory.Exists(romDir))
                 Directory.CreateDirectory(romDir);
 
-            string[] dirs = Directory.GetFiles(romDir, treeView1.SelectedNode.Text + @".*");
+            string[] dirs = Directory.GetFiles(romDir, currentRomName + @".*");
 
             if (dirs == null || dirs.Length == 0) //begin the download
             {
@@ -268,18 +273,24 @@ namespace EmuSteam
             }
             else
             {
-                //MessageBox.Show(dirs[0]);
                 button1.Text = "PLAY GAME!";
 
                 string strCmdText = Application.StartupPath + @"\retroarch\retroarch.exe";
                 string fs = "";
                 if (Properties.Settings.Default.fullscreen == true)
                     fs = " -f ";
-                mergeFiles(treeView1.SelectedNode.Parent.Parent.Text);
-                string confFile = "--appendconfig " + '"' + Application.StartupPath + @"\configs\" + treeView1.SelectedNode.Parent.Parent.Text + " merge.cfg" + '"' + " ";
+                mergeFiles(/*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem);
+                string confFile = "--appendconfig " + '"' + Application.StartupPath + @"\configs\" + /*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem + " merge.cfg" + '"' + " ";
 
-                string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(treeView1.SelectedNode.Parent.Parent.Text) + ".dll " + fs + confFile + " " + '"' + dirs[0] + '"';
-                Process.Start(strCmdText, arguments);
+                string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(/*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem) + ".dll " + fs + confFile + " " + '"' + dirs[0] + '"';
+                try
+                {
+                    Process.Start(strCmdText, arguments);
+                }
+                catch
+                {
+                    MessageBox.Show("RetroArch issue with starting.");
+                }
             }
         }
 
@@ -321,14 +332,16 @@ namespace EmuSteam
             }
         }
 
-        private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e) //our background downloader.
+        private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             string[] args = (string[])e.Argument;
             string romDir = Application.StartupPath + @"\roms\" + args[0];
             string realURL = HttpUtility.HtmlDecode(args[1]);
 
             string sUrlToReadFileFrom = realURL;
-            string sFilePathToWriteFileTo = romDir + @"\tmp.zip";
+            string sFilePathToWriteFileTo = "";
+
+            sFilePathToWriteFileTo = romDir + @"\tmp.zip";
 
             Uri url = new Uri(sUrlToReadFileFrom);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -337,26 +350,39 @@ namespace EmuSteam
             long iSize = response.ContentLength;
             Int64 iRunningByteTotal = 0;
 
-            using (WebClient client = new WebClient())
+            using (WebClient DLclient = new WebClient())
             {
-                using (Stream streamRemote = client.OpenRead(new Uri(sUrlToReadFileFrom)))
+                using (Stream streamRemote = DLclient.OpenRead(new Uri(sUrlToReadFileFrom)))
                 {
                     using (Stream streamLocal = new FileStream(sFilePathToWriteFileTo, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
                         int iByteSize = 0;
-                        byte[] byteBuffer = new byte[iSize];
+                        byte[] byteBuffer;
+                        byteBuffer = new byte[iSize];
                         while ((iByteSize = streamRemote.Read(byteBuffer, 0, byteBuffer.Length)) > 0)
                         {
                             streamLocal.Write(byteBuffer, 0, iByteSize);
                             iRunningByteTotal += iByteSize;
+
+                            if (backgroundWorker2.CancellationPending == true)
+                            {
+                                e.Cancel = true;
+                                break;
+                            }
 
                             double dIndex = (double)(iRunningByteTotal);
                             double dTotal = (double)byteBuffer.Length;
                             double dProgressPercentage = (dIndex / dTotal);
                             int iProgressPercentage = (int)(dProgressPercentage * 100);
                             if (dIndex > 0 && dTotal > 0)
-                                dlprogressLabel.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
-                                backgroundWorker2.ReportProgress(iProgressPercentage);
+                            {
+                                if (dlprogressLabel.InvokeRequired)
+                                    dlprogressLabel.Invoke(new MethodInvoker(delegate
+                                    {
+                                        dlprogressLabel.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
+                                    }));
+                            }
+                            backgroundWorker2.ReportProgress(iProgressPercentage);
                         }
                         streamLocal.Close();
                     }
@@ -364,18 +390,37 @@ namespace EmuSteam
                 }
             }
 
-            string zipToUnpack = romDir + @"\tmp.zip";
-            ExtractFileToDirectory(zipToUnpack, romDir);
+            ExtractFileToDirectory(sFilePathToWriteFileTo, romDir);
         }
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            button1.Enabled = true;
-            string romDir = Application.StartupPath + @"\roms\" + treeView1.SelectedNode.Parent.Parent.Text;
+            webBrowser1.Visible = true;
+            loadingLabel.Visible = false;
+            WebClient w = new WebClient();
+
+            try
+            {
+                if (webBrowser1.Url.ToString().Contains("http://newagesoldier.com/myfiles/emustream/rom/") == true)
+                {
+                    currentRomName = webBrowser1.Url.ToString().Split(new char[] { '/', '/' })[7];
+                    currentSystem = webBrowser1.Url.ToString().Split(new char[] { '/', '/' })[6];
+                    string s = w.DownloadString(webBrowser1.Url.ToString());
+                    currentRomLink = DLLinkFinder.Find(s)[0].ToString(); //grab our DL link
+                    button1.Enabled = true;
+                }
+                else
+                    button1.Enabled = false;
+            }
+            catch
+            {
+            }
+
+            string romDir = Application.StartupPath + @"\roms\" + currentSystem;
             if (!Directory.Exists(romDir))
                 Directory.CreateDirectory(romDir);
 
-            string[] dirs = Directory.GetFiles(romDir, treeView1.SelectedNode.Text + @".*");
+            string[] dirs = Directory.GetFiles(romDir, currentRomName + @".*");
 
             if (dirs == null || dirs.Length == 0) //begin the download
                 button1.Text = "DOWNLOAD && PLAY";
@@ -391,6 +436,8 @@ namespace EmuSteam
             dlprogressLabel.Visible = false;
             button1.Text = "PLAY GAME!";
             button1.PerformClick(); //play
+            ListDirectory(treeView1, Application.StartupPath + @"\roms\");
+            treeView1.ExpandAll();
         }
 
         private void retroArchSettingsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -438,21 +485,50 @@ namespace EmuSteam
             Cursor.Current = Cursors.Default;
             this.UseWaitCursor = false;
             if (!File.Exists("configs/defaults.cfg"))
-                using (File.Create("configs/defaults.cfg")) ;
+                using (File.Create("configs/defaults.cfg"));
         }
 
-        private void libraryLink_Click(object sender, EventArgs e)
+        public struct LinkItem
         {
-            treeView1.Visible = true;
-            webBrowser1.Visible = true;
-            webBrowser2.Visible = false;
+            public string Href;
+            public string Text;
+
+            public override string ToString()
+            {
+                return Href + "\n\t" + Text;
+            }
         }
 
-        private void storeLink_Click(object sender, EventArgs e)
+        static class DLLinkFinder
         {
-            treeView1.Visible = false;
-            webBrowser1.Visible = false;
-            webBrowser2.Visible = true;
+            public static List<LinkItem> Find(string file)
+            {
+                List<LinkItem> list = new List<LinkItem>();
+
+                MatchCollection m1 = Regex.Matches(file, @"(href=\""http://erfg1234.byethost7.com/.*?>.*?</a>)",
+                    RegexOptions.Singleline);
+
+                foreach (Match m in m1)
+                {
+                    string value = m.Groups[1].Value;
+                    LinkItem i = new LinkItem();
+
+                    Match m2 = Regex.Match(value, @"href=\""(.*?)\""",
+                    RegexOptions.Singleline);
+                    if (m2.Success)
+                    {
+                        i.Href = m2.Groups[1].Value;
+                    }
+
+                    list.Add(i);
+                }
+                return list;
+            }
+        }
+
+        private void configureJoysticksToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

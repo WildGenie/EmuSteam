@@ -68,11 +68,11 @@ namespace EmuSteam
 
         public void ExtractFileToDirectory(string zipFileName, string outputDirectory)
         {
-            if (statusLabel.InvokeRequired)
+            /*if (statusLabel.InvokeRequired)
                 statusLabel.Invoke(new MethodInvoker(delegate
                 {
                     statusLabel.Text = "STATUS: Unzipping files. Please wait...";
-                }));
+                }));*/
             FileStream fs = File.OpenRead(zipFileName);
             ZipFile zip = ZipFile.Read(fs);
             Directory.CreateDirectory(outputDirectory);
@@ -119,6 +119,12 @@ namespace EmuSteam
                             streamLocal.Write(byteBuffer, 0, iByteSize);
                             iRunningByteTotal += iByteSize;
 
+                            if (backgroundWorker1.CancellationPending == true)
+                            {
+                                e.Cancel = true;
+                                break;
+                            }
+
                             double dIndex = (double)(iRunningByteTotal);
                             double dTotal = (double)byteBuffer.Length;
                             double dProgressPercentage = (dIndex / dTotal);
@@ -136,6 +142,7 @@ namespace EmuSteam
             }
 
             string zipToUnpack = retroarchDir + @"\tmp.zip";
+
             if (dynamicURL.Contains("core") == true)
                 ExtractFileToDirectory(zipToUnpack, coreDir);
             else
@@ -192,6 +199,9 @@ namespace EmuSteam
         private void Form2_Load(object sender, EventArgs e)
         {
             retroArchFolderCheck();
+            if (Owner != null)
+                Location = new Point(Owner.Location.X + Owner.Width / 2 - Width / 2,
+                    Owner.Location.Y + Owner.Height / 2 - Height / 2);
         }
 
         private void button3_Click(object sender, EventArgs e)
