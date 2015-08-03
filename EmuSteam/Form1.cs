@@ -32,6 +32,8 @@ namespace EmuSteam
         public string currentSystem = "";
         public string currentRomLink = "";
 
+        string[] consoleList = { "arcade", "gameboy", "gba", "n64", "nds", "neogeo", "atari", "lynx", "psx", "snes", "nes", "genesis", "master-system" };
+
         private void Form1_Load(object sender, EventArgs e)
         {
             string masterRomDir = Application.StartupPath + @"\roms";
@@ -177,12 +179,19 @@ namespace EmuSteam
         {
             if (treeView1.SelectedNode != null)
             {
-                loadingLabel.Visible = true;
-                webBrowser1.Visible = false;
-                string gameName = e.Node.Text;
-                string platName = e.Node.Parent.Text;
-                string navURL = "http://newagesoldier.com/myfiles/emustream/rom/" + platName + "/" + gameName;
-                webBrowser1.Navigate(new Uri(navURL));
+                try {
+                    loadingLabel.Visible = true;
+                    webBrowser1.Visible = false;
+                    if (e.Node.Text.Equals("roms")) //basically our home link
+                        webBrowser1.Navigate(new Uri("http://newagesoldier.com/myfiles/emusteam/storefront.php"));
+                    else if (consoleList.Any(e.Node.Text.Contains)) //console names in tree
+                        webBrowser1.Navigate(new Uri("http://newagesoldier.com/myfiles/emusteam/browse.php?c=" + e.Node.Text));
+                    else 
+                        webBrowser1.Navigate(new Uri("http://newagesoldier.com/myfiles/emusteam/rom/" + e.Node.Parent.Text + "/" + e.Node.Text));
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -226,29 +235,29 @@ namespace EmuSteam
         private string coreDetect(string console)
         {
             //all work on libretro (http://www.libretro.com/index.php/ecosystem/)
-            if (console.Contains("arcade"))
+            if (console.Equals("arcade"))
                 return "mame_libretro";
-            else if (console.Contains("gameboy"))
+            else if (console.Equals("gameboy"))
                 return "gambatte_libretro";
-            else if (console.Contains("gba"))
+            else if (console.Equals("gba"))
                 return "mednafen_gba_libretro";
-            else if (console.Contains("n64"))
+            else if (console.Equals("n64"))
                 return "mupen64plus_libretro";
-            else if (console.Contains("nds"))
+            else if (console.Equals("nds"))
                 return "desmume_libretro";
-            else if (console.Contains("neogeo"))
+            else if (console.Equals("neogeo"))
                 return "mednafen_ngp_libretro";
-            else if (console.Contains("atari"))
+            else if (console.Equals("atari"))
                 return "stella_libretro";
-            else if (console.Contains("lynx"))
+            else if (console.Equals("lynx"))
                 return "handy_libretro";
-            else if (console.Contains("psx"))
+            else if (console.Equals("psx"))
                 return "mednafen_psx_libretro";
-            else if (console.Contains("snes"))
+            else if (console.Equals("snes"))
                 return "snes9x_libretro";
-            else if (console.Contains("nes"))
+            else if (console.Equals("nes"))
                 return "nestopia_libretro";
-            else if (console.Contains("sega"))
+            else if (console.Equals("genesis") || console.Equals("master-system"))
                 return "genesis_plus_gx_libretro";
             else
                 return "";
@@ -282,10 +291,11 @@ namespace EmuSteam
                 mergeFiles(/*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem);
                 string confFile = "--appendconfig " + '"' + Application.StartupPath + @"\configs\" + /*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem + " merge.cfg" + '"' + " ";
 
-                string arguments = @"-L " + Application.StartupPath + @"\retroarch\cores\" + coreDetect(/*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem) + ".dll " + fs + confFile + " " + '"' + dirs[0] + '"';
+                string arguments = "-L \"" + Application.StartupPath + @"\retroarch\cores\" + coreDetect(/*treeView1.SelectedNode.Parent.Parent.Text*/currentSystem) + ".dll\" " + fs + confFile + " " + '"' + dirs[0] + '"';
                 try
                 {
                     Process.Start(strCmdText, arguments);
+                    //MessageBox.Show("DEBUG: " + strCmdText + " " + arguments);
                 }
                 catch
                 {
@@ -401,7 +411,7 @@ namespace EmuSteam
 
             try
             {
-                if (webBrowser1.Url.ToString().Contains("http://newagesoldier.com/myfiles/emustream/rom/") == true)
+                if (webBrowser1.Url.ToString().Contains("http://newagesoldier.com/myfiles/emusteam/rom/") == true)
                 {
                     currentRomName = webBrowser1.Url.ToString().Split(new char[] { '/', '/' })[7];
                     currentSystem = webBrowser1.Url.ToString().Split(new char[] { '/', '/' })[6];
@@ -505,7 +515,7 @@ namespace EmuSteam
             {
                 List<LinkItem> list = new List<LinkItem>();
 
-                MatchCollection m1 = Regex.Matches(file, @"(href=\""http://erfg1234.byethost7.com/.*?>.*?</a>)",
+                MatchCollection m1 = Regex.Matches(file, @"(id=\""download\"" href=\""http://newagesoldier.com/myfiles/emusteam/files/.*?</a>)",
                     RegexOptions.Singleline);
 
                 foreach (Match m in m1)
