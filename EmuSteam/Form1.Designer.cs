@@ -38,15 +38,14 @@
             this.systemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.browseEmuSteamFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.donateToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.retroArchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureJoysticksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.retroArchSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.manageRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openRetroArchFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dlprogressLabel = new System.Windows.Forms.Label();
             this.loadingLabel = new System.Windows.Forms.Label();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -113,7 +112,7 @@
             this.systemToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem,
             this.browseEmuSteamFolderToolStripMenuItem,
-            this.donateToolStripMenuItem1,
+            this.settingsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.systemToolStripMenuItem.Name = "systemToolStripMenuItem";
             this.systemToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
@@ -122,28 +121,21 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.aboutToolStripMenuItem.Text = "About EmuSteam";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // browseEmuSteamFolderToolStripMenuItem
             // 
             this.browseEmuSteamFolderToolStripMenuItem.Name = "browseEmuSteamFolderToolStripMenuItem";
-            this.browseEmuSteamFolderToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.browseEmuSteamFolderToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.browseEmuSteamFolderToolStripMenuItem.Text = "Browse EmuSteam Folder";
             this.browseEmuSteamFolderToolStripMenuItem.Click += new System.EventHandler(this.browseEmuSteamFolderToolStripMenuItem_Click);
-            // 
-            // donateToolStripMenuItem1
-            // 
-            this.donateToolStripMenuItem1.Name = "donateToolStripMenuItem1";
-            this.donateToolStripMenuItem1.Size = new System.Drawing.Size(216, 22);
-            this.donateToolStripMenuItem1.Text = "Donate to New Age Soldier";
-            this.donateToolStripMenuItem1.Click += new System.EventHandler(this.donateToolStripMenuItem1_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -151,7 +143,6 @@
             // 
             this.retroArchToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.configureJoysticksToolStripMenuItem,
-            this.retroArchSettingsToolStripMenuItem,
             this.manageRetroArchFolderToolStripMenuItem,
             this.openRetroArchFolderToolStripMenuItem});
             this.retroArchToolStripMenuItem.Name = "retroArchToolStripMenuItem";
@@ -164,13 +155,6 @@
             this.configureJoysticksToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
             this.configureJoysticksToolStripMenuItem.Text = "Configure Joysticks";
             this.configureJoysticksToolStripMenuItem.Click += new System.EventHandler(this.configureJoysticksToolStripMenuItem_Click);
-            // 
-            // retroArchSettingsToolStripMenuItem
-            // 
-            this.retroArchSettingsToolStripMenuItem.Name = "retroArchSettingsToolStripMenuItem";
-            this.retroArchSettingsToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
-            this.retroArchSettingsToolStripMenuItem.Text = "RetroArch Settings";
-            this.retroArchSettingsToolStripMenuItem.Click += new System.EventHandler(this.retroArchSettingsToolStripMenuItem_Click);
             // 
             // manageRetroArchFolderToolStripMenuItem
             // 
@@ -208,6 +192,13 @@
             this.loadingLabel.Text = "Loading...";
             this.loadingLabel.Visible = false;
             // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -244,16 +235,15 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem retroArchToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configureJoysticksToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem retroArchSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem manageRetroArchFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem systemToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem donateToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openRetroArchFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem browseEmuSteamFolderToolStripMenuItem;
         private System.Windows.Forms.Label dlprogressLabel;
         private System.Windows.Forms.Label loadingLabel;
+        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
     }
 }
 

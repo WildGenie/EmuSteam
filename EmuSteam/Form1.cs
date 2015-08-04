@@ -52,6 +52,11 @@ namespace EmuSteam
             treeView1.ExpandAll();
         }
 
+        private void uploadSaves()
+        {
+            Process.Start(Application.StartupPath + @"\tools\save.bat " + Properties.Settings.Default.mega_email + " " + Properties.Settings.Default.mega_password + " FILE");
+        }
+
         private static string RemoveExt(string file)
         {
             int fileExtPos = file.LastIndexOf(".");
@@ -450,13 +455,6 @@ namespace EmuSteam
             treeView1.ExpandAll();
         }
 
-        private void retroArchSettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            settings settings = new settings();
-            settings.Show();
-            settings.TopMost = true;
-        }
-
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             about about = new about();
@@ -539,6 +537,13 @@ namespace EmuSteam
         private void configureJoysticksToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            settings settings = new settings();
+            settings.Show();
+            settings.TopMost = true;
         }
     }
 }

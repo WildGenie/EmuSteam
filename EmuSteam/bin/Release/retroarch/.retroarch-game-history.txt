@@ -1,0 +1,9 @@
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\roms\genesis\Sonic the Hedgehog 2.md
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\retroarch\cores\genesis_plus_gx_libretro.dll
+Genesis Plus GX
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\roms\snes\Super Mario Kart.sfc
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\retroarch\cores\snes9x_libretro.dll
+SNES9x
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\roms\nes\Mega Man.nes
+C:\Users\Jake\Documents\GitHub\EmuSteam\EmuSteam\bin\Release\retroarch\cores\nestopia_libretro.dll
+Nestopia
