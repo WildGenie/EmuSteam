@@ -10,6 +10,7 @@ using System.IO;
 using System.Web;
 using System.Net;
 using Ionic.Zip;
+using System.Diagnostics;
 
 namespace EmuSteam
 {
@@ -73,17 +74,32 @@ namespace EmuSteam
                 {
                     statusLabel.Text = "STATUS: Unzipping files. Please wait...";
                 }));*/
-            FileStream fs = File.OpenRead(zipFileName);
-            ZipFile zip = ZipFile.Read(fs);
-            Directory.CreateDirectory(outputDirectory);
-            foreach (ZipEntry e in zip)
-            {
-                e.Extract(outputDirectory, ExtractExistingFileAction.OverwriteSilently);
-            }
-            fs.Close();
 
-            string tmpFile = outputDirectory + @"\tmp.zip";
-            File.Delete(tmpFile);
+            Directory.CreateDirectory(outputDirectory);
+
+            if (zipFileName.Contains(".7z"))
+            {
+                string tmpFile = outputDirectory + @"\tmp.7z";
+                //MessageBox.Show(tmpFile);
+                ProcessStartInfo zipper = new ProcessStartInfo("7z.exe");
+                zipper.Arguments = string.Format("x {0} -o{1}", tmpFile, outputDirectory);
+                //zipper.RedirectStandardInput = true;
+                //zipper.UseShellExecute = false;
+                //zipper.CreateNoWindow = true;
+                //zipper.WindowStyle = ProcessWindowStyle.Hidden;
+                Process process = Process.Start(zipper);
+            } else {
+                MessageBox.Show("normal zip");
+                FileStream fs = File.OpenRead(zipFileName);
+                ZipFile zip = ZipFile.Read(fs);
+
+                foreach (ZipEntry e in zip)
+                {
+                    e.Extract(outputDirectory, ExtractExistingFileAction.OverwriteSilently);
+                }
+                fs.Close();
+                File.Delete(zipFileName);
+            }
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -95,9 +111,13 @@ namespace EmuSteam
             string realURL = HttpUtility.HtmlDecode("http://newagesoldier.com/myfiles/xml/emusteam/getra.php?v=" + e.Argument);
 
             string coreDir = Application.StartupPath + @"\retroarch\cores";
+            string sFilePathToWriteFileTo = "";
 
             string sUrlToReadFileFrom = realURL;
-            string sFilePathToWriteFileTo = retroarchDir + @"\tmp.zip";
+            if (dynamicURL.Contains("core") == true)
+                sFilePathToWriteFileTo = retroarchDir + @"\tmp.zip";
+            else
+                sFilePathToWriteFileTo = retroarchDir + @"\tmp.7z";
 
             Uri url = new Uri(sUrlToReadFileFrom);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -131,7 +151,10 @@ namespace EmuSteam
                             int iProgressPercentage = (int)(dProgressPercentage * 100);
                             if (dIndex > 0 && dTotal > 0)
                             {
-                                progressbarText.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
+                                progressbarText.Invoke(new MethodInvoker(delegate
+                                {
+                                    progressbarText.Text = BytesToString(dIndex).ToString() + "/" + BytesToString(dTotal).ToString() + " (" + iProgressPercentage.ToString() + "%)";
+                                }));
                                 backgroundWorker1.ReportProgress(iProgressPercentage);
                             }
                         }
@@ -141,12 +164,10 @@ namespace EmuSteam
                 }
             }
 
-            string zipToUnpack = retroarchDir + @"\tmp.zip";
-
             if (dynamicURL.Contains("core") == true)
-                ExtractFileToDirectory(zipToUnpack, coreDir);
+                ExtractFileToDirectory(sFilePathToWriteFileTo, coreDir);
             else
-                ExtractFileToDirectory(zipToUnpack, retroarchDir);
+                ExtractFileToDirectory(sFilePathToWriteFileTo, retroarchDir);
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -211,7 +232,8 @@ namespace EmuSteam
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            Directory.Delete(retroarchDir, true);
+            if (Directory.Exists(@".\retroarch"))
+                Directory.Delete(retroarchDir, true);
             retroArchFolderCheck();
         }
 
