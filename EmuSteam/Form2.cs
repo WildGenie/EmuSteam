@@ -10,6 +10,7 @@ using System.IO;
 using System.Web;
 using System.Net;
 using Ionic.Zip;
+using System.Text.RegularExpressions;
 using System.Diagnostics;
 
 namespace EmuSteam
@@ -100,6 +101,25 @@ namespace EmuSteam
                 fs.Close();
                 File.Delete(zipFileName);
             }
+        }
+
+
+
+        public static string GetPageAsString(string url)
+        {
+            string html = string.Empty;
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.AutomaticDecompression = DecompressionMethods.GZip;
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                html = reader.ReadToEnd();
+            }
+
+            return html;
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -219,6 +239,18 @@ namespace EmuSteam
 
         private void Form2_Load(object sender, EventArgs e)
         {
+            //VERSION TEST
+            string stringvar = GetPageAsString("http://buildbot.libretro.com/stable/");
+            foreach (Match match in Regex.Matches(stringvar, "<td class=\'fb-n\'><a href=\'(.*?)\'>", RegexOptions.Singleline))
+            {
+                if (match.Value.Contains("..") || match.Value.Contains("archive"))
+                    continue;
+                string ver = match.Value.Replace("<td class='fb-n'><a href='/stable/", "");
+                ver = ver.Replace("/'>","");
+                MessageBox.Show(ver);
+            }
+            //
+
             retroArchFolderCheck();
             if (Owner != null)
                 Location = new Point(Owner.Location.X + Owner.Width / 2 - Width / 2,
